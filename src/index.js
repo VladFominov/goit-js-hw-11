@@ -11,26 +11,32 @@ let value = "";
 
  
 const onSubmit = async (e) => {
-//    btnMore.classList.remove('.load-more.is-hidden');
+btnMore.classList.add('.is-hidden');
     e.preventDefault();
     
     value = e.target.searchQuery.value.trim();
-    e.target.searchQuery.value = '';
+    // e.target.searchQuery.value = '';
     if (!value) return;
     page = 1;
 
     try {
-        const data = await getImage(value, page); 
-        console.log(data); 
-        if (data.hits.length === 0) {
-            Notify.failure(
-              'Sorry, there are no images matching your search query. Please try again.'
-            );
-            return;
-        }
-        btnMore.classList.remove('is-hidden');
+    
+        const { hits, totalHits } = await getImage(value, page); 
+         
+        if (hits.length ===0) {
+          galleryRef.innerHTML = '';
+          Notify.failure(
+            'Sorry, there are no images matching your search query. Please try again.'
+          );
+
+          return;
+           } else if (totalHits < perPage) {
+             btnMore.classList.add('is-hidden');
+        } else {
+            btnMore.classList.remove('is-hidden');
+           }
         galleryRef.innerHTML = "";
-        markupImageList(data.hits);
+        markupImageList(hits);
         
      }
     catch (error) {
@@ -41,13 +47,15 @@ const onSubmit = async (e) => {
 }
 
 const onLoadMore = async e => {
-    
+     btnMore.classList.add('is-hidden');
     page +=1
     const { hits, totalHits } = await getImage(value, page) 
     markupImageList(hits);
-    if ((page + 1) * perPage > totalHits) {
+    if (page  * perPage > totalHits) {
         Notify.info("We're sorry, but you've reached the end of search results.");
-        btnMore.classList.add('is-hidden');
+       
+    } else {
+         btnMore.classList.remove('is-hidden');
     }
 };
 
